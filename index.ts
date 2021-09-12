@@ -1,4 +1,6 @@
 const { ApolloServer } = require(`apollo-server`)
+import User from './User';
+import Photo, { PhotoCategory } from './Photo';
 
 const typeDefs = `
   type Photo {
@@ -7,6 +9,7 @@ const typeDefs = `
       name: String!
       description: String
       category: PhotoCategory!
+      githubUser: String
   }
 
   enum PhotoCategory {
@@ -21,6 +24,7 @@ const typeDefs = `
       name: String!
       category: PhotoCategory=PORTRAIT
       description: String
+      githubUser: String
   }
 
   type Query {
@@ -32,8 +36,17 @@ const typeDefs = `
       postPhoto(input: PostPhotoInput!): Photo!
   }
 `
+var users = [
+    new User("mHatterup", "Mike"),
+    new User("JMMMM", "John"),
+    new User("DaveDaveDive", "Dave"),
 
-var photos = []
+]
+var photos = [
+    new Photo("0", "Cute Dog", "Cute dog picture.", PhotoCategory.GRAPHIC, "mHatterup"),
+    new Photo("1", "Angry Cat", "Angry cat action movie.", PhotoCategory.ACTION, "JMMMM"),
+    new Photo("2", "Big Elephant", "lake like big elephant.", PhotoCategory.LANDSCAPE, "JMMMM"),
+]
 
 const resolvers = {
     Query: {
@@ -42,7 +55,7 @@ const resolvers = {
     },
 
     Mutation: {
-        postPhoto(parent, args) {
+        postPhoto(parent: any, args: any) {
             var input = args.input
             var photo = {
                 id: photos.length,
@@ -54,7 +67,7 @@ const resolvers = {
     },
 
     Photo: {
-        url: parent => `http://yoursite.com/img/${parent.id}.jpg`
+        url: (parent: any) => `http://yoursite.com/img/${parent.id}.jpg`
     }
 }
 
@@ -63,4 +76,4 @@ const server = new ApolloServer({
     resolvers
 })
 
-server.listen().then(({ url }) => console.log(`GraphQL Service runnning on ${url}`))
+server.listen().then(({ url }: any) => console.log(`GraphQL Service runnning on ${url}`))

@@ -2,7 +2,7 @@
   "name": "GraphQLApp",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon -e js,json,graphql"
@@ -22,5 +22,8 @@
     "apollo-server": "^3.3.0",
     "graphql": "^15.5.3",
     "nodemon": "^2.0.12"
+  },
+  "devDependencies": {
+    "typescript": "^4.4.3"
   }
 }
