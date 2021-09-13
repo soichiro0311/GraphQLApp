@@ -1,6 +1,7 @@
 const { ApolloServer } = require(`apollo-server`)
 import User from './User';
 import Photo, { PhotoCategory } from './Photo';
+import Tag from './Tag';
 
 const typeDefs = `
   type Photo {
@@ -9,7 +10,16 @@ const typeDefs = `
       name: String!
       description: String
       category: PhotoCategory!
-      githubUser: String
+      postedBy: User!
+      taggedUsers: [User!]!
+  }
+
+  type User {
+      githubLogin: ID!
+      name: String
+      avater: String
+      postedPhotos: [Photo!]!
+      inPhotos: [Photo!]!
   }
 
   enum PhotoCategory {
@@ -47,6 +57,12 @@ var photos = [
     new Photo("1", "Angry Cat", "Angry cat action movie.", PhotoCategory.ACTION, "JMMMM"),
     new Photo("2", "Big Elephant", "lake like big elephant.", PhotoCategory.LANDSCAPE, "JMMMM"),
 ]
+var tags = [
+    new Tag("1", "mHatterup"),
+    new Tag("2", "JMMMM"),
+    new Tag("2", "JMMMM"),
+    new Tag("0", "mHatterup"),
+]
 
 const resolvers = {
     Query: {
@@ -67,7 +83,22 @@ const resolvers = {
     },
 
     Photo: {
-        url: (parent: any) => `http://yoursite.com/img/${parent.id}.jpg`
+        url: (parent: any) => `http://yoursite.com/img/${parent.id}.jpg`,
+        postedBy: (parent: any) => {
+            return users.find(u => u.githubLogin === parent.githubUser)
+        },
+        taggedUsers: (parent: any) => {
+            return tags.filter(tag => tag.photoID === parent.id).map(tag => tag.userID).map(userID => users.find(u => u.githubLogin === userID))
+        }
+    },
+
+    User: {
+        postedPhotos: (parent: any) => {
+            return photos.filter(p => p.githubUser === parent.githubLogin)
+        },
+        inPhotos: (parent: any) => {
+            return tags.filter(tag => tag.photoID === parent.id).map(tag => tag.photoID).map(photoID => photos.find(p => p.id === photoID))
+        }
     }
 }
 
