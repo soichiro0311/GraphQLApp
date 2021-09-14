@@ -1,56 +1,15 @@
-const { ApolloServer } = require(`apollo-server`)
+import express from 'express';
 import User from './User';
 import Photo, { PhotoCategory } from './Photo';
 import Tag from './Tag';
 import { GraphQLScalarType } from './node_modules/graphql';
 import PostPhotoInput from './PostPhotoInput';
+const { ApolloServer } = require('apollo-server-express')
+const expressPlayGround = require(`graphql-playground-middleware-express`).default
+const { readFileSync } = require('fs')
 
-const typeDefs = `
-  scalar DateTime
+const typeDefs: any = readFileSync(`./typeDefs.graphql`, 'UTF-8')
 
-  type Photo {
-      id: ID!
-      url: String!
-      name: String!
-      description: String
-      category: PhotoCategory!
-      postedBy: User!
-      taggedUsers: [User!]!
-      created: DateTime!
-  }
-
-  type User {
-      githubLogin: ID!
-      name: String
-      avater: String
-      postedPhotos: [Photo!]!
-      inPhotos: [Photo!]!
-  }
-
-  enum PhotoCategory {
-      SERFIE
-      PORTRAIT
-      ACTION
-      LANDSCAPE
-      GRAPHIC
-  }
-
-  input PostPhotoInput {
-      name: String!
-      category: PhotoCategory=PORTRAIT
-      description: String
-      githubUser: String
-  }
-
-  type Query {
-    totalPhotos: Int!
-    allPhotos: [Photo!]!
-  }
-
-  type Mutation {
-      postPhoto(input: PostPhotoInput!): Photo!
-  }
-`
 var users = [
     new User("mHatterup", "Mike"),
     new User("JMMMM", "John"),
@@ -69,7 +28,7 @@ var tags = [
     new Tag("0", "mHatterup"),
 ]
 
-const resolvers = {
+const resolvers: any = {
     Query: {
         totalPhotos: () => photos.length,
         allPhotos: () => photos
@@ -114,9 +73,16 @@ const resolvers = {
     })
 }
 
+var app: any = express()
+
 const server = new ApolloServer({
     typeDefs,
     resolvers
 })
 
-server.listen().then(({ url }: any) => console.log(`GraphQL Service runnning on ${url}`))
+server.applyMiddleware({ app })
+
+app.get(`/`, (req: any, res: any) => res.end(`Welcome to the PhotoShare API.`))
+app.get(`/playground`, expressPlayGround({ endpoint: `/graphql` }))
+
+app.listen({ port: 4000 }, () => console.log(`GraphQL ${server.graphqlPath}`))
