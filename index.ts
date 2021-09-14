@@ -2,8 +2,12 @@ const { ApolloServer } = require(`apollo-server`)
 import User from './User';
 import Photo, { PhotoCategory } from './Photo';
 import Tag from './Tag';
+import { GraphQLScalarType } from './node_modules/graphql';
+import PostPhotoInput from './PostPhotoInput';
 
 const typeDefs = `
+  scalar DateTime
+
   type Photo {
       id: ID!
       url: String!
@@ -12,6 +16,7 @@ const typeDefs = `
       category: PhotoCategory!
       postedBy: User!
       taggedUsers: [User!]!
+      created: DateTime!
   }
 
   type User {
@@ -53,9 +58,9 @@ var users = [
 
 ]
 var photos = [
-    new Photo("0", "Cute Dog", "Cute dog picture.", PhotoCategory.GRAPHIC, "mHatterup"),
-    new Photo("1", "Angry Cat", "Angry cat action movie.", PhotoCategory.ACTION, "JMMMM"),
-    new Photo("2", "Big Elephant", "lake like big elephant.", PhotoCategory.LANDSCAPE, "JMMMM"),
+    new Photo("0", "Cute Dog", "Cute dog picture.", PhotoCategory.GRAPHIC, "mHatterup", "3-28-1977"),
+    new Photo("1", "Angry Cat", "Angry cat action movie.", PhotoCategory.ACTION, "JMMMM", "1-2-1985"),
+    new Photo("2", "Big Elephant", "lake like big elephant.", PhotoCategory.LANDSCAPE, "JMMMM", "2018-04-15T19:09:57.308Z"),
 ]
 var tags = [
     new Tag("1", "mHatterup"),
@@ -72,11 +77,9 @@ const resolvers = {
 
     Mutation: {
         postPhoto(parent: any, args: any) {
-            var input = args.input
-            var photo = {
-                id: photos.length,
-                ...args.input
-            }
+            const input: PostPhotoInput = args.input
+            const now = new Date()
+            var photo = new Photo(photos.length.toString(), input.name, input.description, input.category, input.githubUser, now.toISOString())
             photos.push(photo)
             return photo
         }
@@ -85,6 +88,7 @@ const resolvers = {
     Photo: {
         url: (parent: any) => `http://yoursite.com/img/${parent.id}.jpg`,
         postedBy: (parent: any) => {
+
             return users.find(u => u.githubLogin === parent.githubUser)
         },
         taggedUsers: (parent: any) => {
@@ -99,7 +103,15 @@ const resolvers = {
         inPhotos: (parent: any) => {
             return tags.filter(tag => tag.photoID === parent.id).map(tag => tag.photoID).map(photoID => photos.find(p => p.id === photoID))
         }
-    }
+    },
+
+    DateTime: new GraphQLScalarType({
+        name: `DateTime`,
+        description: `A Value date time value.`,
+        parseValue: (value: any) => new Date(value),
+        serialize: (value: any) => new Date(value).toISOString(),
+        parseLiteral: (ast: any) => ast.value
+    })
 }
 
 const server = new ApolloServer({

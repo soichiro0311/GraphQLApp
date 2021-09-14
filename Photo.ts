@@ -4,13 +4,15 @@ export default class Photo {
     description: String = ''
     category: String = ''
     githubUser: String = ''
+    created: String = ''
 
-    constructor(id: String, name: String, description: String, category: PhotoCategory, githubUser: String) {
+    constructor(id: String, name: String, description: String, category: PhotoCategory, githubUser: String, created: String) {
         this.id = id
         this.name = name
         this.description = name
         this.category = category.toString()
         this.githubUser = githubUser
+        this.created = created
     }
 }
 
@@ -20,6 +22,4 @@ export enum PhotoCategory {
     ACTION = 'ACTION',
     LANDSCAPE = 'LANDSCAPE',
     GRAPHIC = 'GRAPHIC'
-
-
 }
